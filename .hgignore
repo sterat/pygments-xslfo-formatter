@@ -1,0 +1,6 @@
+
+syntax: glob
+
+.idea/workspace.xml
+*.pyc
+*.sw?
