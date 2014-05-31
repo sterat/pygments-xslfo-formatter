@@ -4,3 +4,4 @@ syntax: glob
 .idea/workspace.xml
 *.pyc
 *.sw?
+pygments_xslfo_formatter.egg-info/
