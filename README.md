@@ -1,49 +1,49 @@
+# Pygments formatter for xsl-fo output 
 
-= Pygments formatter for xsl-fo output =
-
-This is a formatter for [http://pygments.org pygments] that produces output as a fragment
+This is a formatter for [pygments](http://pygments.org) that produces output as a fragment
 of XSL-FO code.
-It was developed for use with [http://asciidoc.org asciidoc]
-to produce PDF's using [http://xmlgraphics.apache.org/fop fop] with
+It was developed for use with [asciidoc](http://asciidoc.org)
+to produce PDF's using [fop](http://xmlgraphics.apache.org/fop) with
 minimal configuration or extra dependencies.
 
 It is possible that it could be used in more general docbook to pdf
 tool chains.
 
-== Installation ==
+## Installation 
+
 It is not currently available in pypi, so it must be installed from
 the source distibution.
 Use any of the normal installation methods from the top
 directory of the distribution to install.
 
-<pre code="console">
+```console
 $ python setup.py install   # Usual setup.py installation method
 
 $ pip install .             # Using pip
-</pre>
+```
 
 This will install pygments if it is not already installed.
 You can check that it is working by listing the formatters
-and checking for the presence of one containing ''xslfo''.
+and checking for the presence of one containing _xslfo_.
 
-<pre code=console>
+```console
 $ pygmentize -L formatters
 Formatters:
 ~~~~~~~~~~~
 [... ommitted output ...]
 * xslfo, xsl-fo:
     Format tokens as XSL-FO ``<fo:inline>`` tags.
-</pre>
+```
 
-== Usage ==
+## Usage 
 
-As this just adds a new formatter type to pygments, you just use
-'xslfo' where ever you might, for example, specify 'html' as a
+As this just adds a new formatter type to pygments, you just use'
+xslfo' where ever you might, for example, specify 'html' as a
 formatter name.
 
-<pre code=console>
+```console
 $ pygmentize -f xslso -l python setup.py
-</pre>
+```
 
 You should see lots of <fo:inline> tags
 
@@ -51,6 +51,6 @@ To use with asciidoc, which is the initial purpose of this extension
 look at the example directory which contains a simple but complete
 example.
 
-== Example result ==
-You can see an example pdf file here:
-[https://bitbucket.org/sratcliffe/pygments-xslfo-formatter/downloads/example.pdf]
+## Example result 
+
+You can see an example pdf file here:[[1]](https://bitbucket.org/sratcliffe/pygments-xslfo-formatter/downloads/example.pdf)
