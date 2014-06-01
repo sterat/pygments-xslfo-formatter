@@ -1,0 +1,155 @@
+
+Syntax highlight with pygments and fop example
+==============================================
+
+Introduction
+------------
+
+This is a simple example with all the configuration required to show
+this method of including syntax highlighting working. 
+Asciidoc and docbook are run with all the default options apart from
+those required to enable syntax highlighting.
+
+Check everything is installed
+-----------------------------
+
+First you need to check that the xslfo formatter and
+pygmentize are installed and available.  You should be able
+to run the following command the see the line containing xslfo
+among the output lines.
+
+[source,console]
+----
+$ pygmentize -L formatters
+Formatters:
+~~~~~~~~~~~
+[... ommitted output ...]
+* xslfo, xsl-fo:
+    Format tokens as XSL-FO ``<fo:inline>`` tags. 
+----
+
+If this is not the case, then the following isn't going to work so
+go back and make sure everything is installed properly and available
+in the environment you are running in.
+
+Creating the example
+--------------------
+
+The makefile basically runs the following command
+
+[source,sh]
+----
+a2x -L --xsl-file=fo.xsl --fop \
+	--asciidoc-opts='--conf-file=local-docbook45.conf' \
+	-a 'source-highlighter=pygments' \
+	-a 'pygments-style=default' \
+	example.adoc
+----
+
+There are two files that need to be customised. You will probably
+already have suitable customisation files already, but if not
+you can use the exact ones in this directory.
+
+The next sections discuss the files needed.
+
+* fo.xsl - adds a new template for fo:block
+* local-docbook45.conf - to set up pygmentize for docbook
+
+The fo.xsl file
+---------------
+
+You will probably already have a customised fo.xsl file. If so, you
+just need to add the template from the following complete file.
+
+[source,xslt]
+----
+<!--
+  Generates single FO document from DocBook XML source using DocBook XSL
+  stylesheets.
+
+  See xsl-stylesheets/fo/param.xsl for all parameters.
+
+  NOTE: The URL reference to the current DocBook XSL stylesheets is
+  rewritten to point to the copy on the local disk drive by the XML catalog
+  rewrite directives so it doesn't need to go out to the Internet for the
+  stylesheets. This means you don't need to edit the <xsl:import> elements on
+  a machine by machine basis.
+-->
+<xsl:stylesheet version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:fo="http://www.w3.org/1999/XSL/Format">
+<xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
+
+
+<!-- This is the only thing that needs to be added for 
+     the pygments-xslfo-formatter -->
+<xsl:template match="fo:inline|fo:block">
+	<xsl:copy-of select="."/>
+</xsl:template>
+
+</xsl:stylesheet>
+----
+
+The local-docbook45.conf file
+-----------------------------
+
+This file contains the configuration that makes calls to pymentize.
+It is very much like the configuration for using pygmentize with html,
+except that you pass the extra argument +-f xslfo+.  There is also
+a configuration parameter +pygments-style+ that you can pass on
+the +a2x+ command line as in the example below to change the pygments
+style that is used.
+
+[source,ini]
+----
+[source-filter-style]
+# This should be all one line, broken for readability
+source-style=template="source-highlight-block",presubs=(),
+ postsubs=("callouts",),posattrs=("style","language","src_numbered","src_tab"),
+ filter="pygmentize -l {language} -f xslfo
+         {pygments-style?-Ostyle={pygments-style}} {args=}"
+
+#########################
+# Source paragraph styles
+#########################
+[paradef-default]
+template::[source-filter-style]
+
+[paradef-literal]
+template::[source-filter-style]
+
+#########################
+# Source block styles
+#########################
+[blockdef-open]
+template::[source-filter-style]
+
+[blockdef-listing]
+template::[source-filter-style]
+----
+
+The example makefile
+--------------------
+
+The makefile shows the command options to pass.
+
+[source,make]
+----
+A2X=a2x
+
+# Pass source-highlighter=pygments to enable
+# Pass eg. pygments-style=tango to change the pygments style to 'tango'
+# or whatever you prefer.
+PDF_OPTS=\
+	--asciidoc-opts='--conf-file=local-docbook45.conf' \
+	-a source-highlighter=pygments \
+	-a pygments-style=default
+
+all: example.pdf
+
+example.pdf: example.adoc
+	$(A2X) -L --xsl-file=fo.xsl --fop $(PDF_OPTS) example.adoc
+
+clean:
+	rm -f example.pdf
+----
