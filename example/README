@@ -1,1 +1,6 @@
-This is an example with asciidoc
+This is an example of producing a PDF file using asciidoc
+and fop with syntax highlighting produced by pygments.
+
+See the example.adoc file for full details. You should be
+able to run 'make' to build a pdf of the instructions if
+you have all the requirements installed.
