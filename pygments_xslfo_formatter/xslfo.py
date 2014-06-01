@@ -44,6 +44,7 @@ class XslfoFormatter(Formatter):
 
 		# Holds fo attributes that correspond to each style type.
 		self.styles = {}
+		self.background_colour = self.style.background_color or '#ffffff'
 
 		# Iterate over the style and create a list of fo attributes that describe it.
 		for token, style in self.style:
@@ -82,7 +83,9 @@ class XslfoFormatter(Formatter):
 			atts = self.styles[t]
 			outfile.write('<fo:inline %s>%s</fo:inline>' % (atts, escape_html(val)))
 
-		outfile.write('<fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format">')
+		outfile.write(
+			'<fo:block background-color="%s" xmlns:fo="http://www.w3.org/1999/XSL/Format">'
+				% self.background_colour)
 
 		lastval = ''
 		lasttype = None
