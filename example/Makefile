@@ -3,6 +3,7 @@ A2X=a2x
 
 PDF_OPTS=\
 	--asciidoc-opts='--conf-file=local-docbook45.conf' \
+	-a tabsize=4 \
 	-a source-highlighter=pygments \
 	-a pygments-style=default
 

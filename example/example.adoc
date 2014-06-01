@@ -1,6 +1,6 @@
 
-Syntax highlight with pygments and fop example
-==============================================
+Syntax highlighting with pygments and fop
+=========================================
 
 Introduction
 ------------
@@ -8,7 +8,8 @@ Introduction
 This is a simple example with all the configuration required to show
 this method of including syntax highlighting working. 
 Asciidoc and docbook are run with all the default options apart from
-those required to enable syntax highlighting.
+those required to enable syntax highlighting and a couple of settings
+to give more space for the listings.
 
 Check everything is installed
 -----------------------------
@@ -23,7 +24,7 @@ among the output lines.
 $ pygmentize -L formatters
 Formatters:
 ~~~~~~~~~~~
-[... ommitted output ...]
+[... omitted output ...]
 * xslfo, xsl-fo:
     Format tokens as XSL-FO ``<fo:inline>`` tags. 
 ----
@@ -45,6 +46,9 @@ a2x -L --xsl-file=fo.xsl --fop \
 	-a 'pygments-style=default' \
 	example.adoc
 ----
+
+You need the `-L` flag to disable validation, and it is useful to add
+the +-v+ flag too if there are any problems.
 
 There are two files that need to be customised. You will probably
 already have suitable customisation files already, but if not
@@ -101,37 +105,49 @@ the +a2x+ command line as in the example below to change the pygments
 style that is used.
 
 [source,ini]
-----
-[source-filter-style]
-# This should be all one line, broken for readability
-source-style=template="source-highlight-block",presubs=(),
- postsubs=("callouts",),posattrs=("style","language","src_numbered","src_tab"),
- filter="pygmentize -l {language} -f xslfo
-         {pygments-style?-Ostyle={pygments-style}} {args=}"
+--
+ ifdef::basebackend-docbook[]
+ ifeval::["{source-highlighter}"=="pygments"]
+ [source-filter-style]
+ # This should be all one line, broken for readability
+ source-style=template="source-highlight-block",presubs=(),
+   postsubs=("callouts",),
+   posattrs=("style","language","src_numbered","src_tab"),
+   filter="pygmentize -l {language} -f xslfo
+             {pygments-style?-Ostyle={pygments-style}} {args=}"
+ 
+ #########################
+ # Source paragraph styles
+ #########################
+ [paradef-default]
+ template::[source-filter-style]
+ 
+ [paradef-literal]
+ template::[source-filter-style]
+ 
+ #########################
+ # Source block styles
+ #########################
+ [blockdef-open]
+ template::[source-filter-style]
+ 
+ [blockdef-listing]
+ template::[source-filter-style]
+ 
+ endif::[]
+ endif::basebackend-docbook[]
+--
 
-#########################
-# Source paragraph styles
-#########################
-[paradef-default]
-template::[source-filter-style]
+You can call this file whatever you want, if you already have a
+asciidoc configuration file, then just add the lines to it.
 
-[paradef-literal]
-template::[source-filter-style]
-
-#########################
-# Source block styles
-#########################
-[blockdef-open]
-template::[source-filter-style]
-
-[blockdef-listing]
-template::[source-filter-style]
-----
 
 The example makefile
 --------------------
 
 The makefile shows the command options to pass.
+Note that you have to pass +-L+ to skip validation, since it will
+fail due to the added fo:block element.
 
 [source,make]
 ----
@@ -153,3 +169,120 @@ example.pdf: example.adoc
 clean:
 	rm -f example.pdf
 ----
+
+
+== The source code ==
+
+Here is a version of the source code, which is included here as an
+extra example of syntax highlighting.
+
+[source,python]
+--
+# -*- coding: utf-8 -*-
+"""
+	pygments.formatters.html
+	~~~~~~~~~~~~~~~~~~~~~~~~
+
+	Formatter for XSL-FO output.
+
+	:copyright: Copyright 2014, Steve Ratcliffe
+	:license: BSD, see LICENSE for details.
+"""
+
+from pygments.formatter import Formatter
+from pygments.util import bytes
+
+__all__ = ['XslfoFormatter']
+
+
+_escape_html_table = {
+	ord('&'): u'&amp;',
+	ord('<'): u'&lt;',
+	ord('>'): u'&gt;',
+	ord('"'): u'&quot;',
+	ord("'"): u'&#39;',
+	}
+
+
+def escape_html(text, table=_escape_html_table):
+	"""Escape &, <, > as well as single and double quotes for HTML."""
+	return text.translate(table)
+
+
+class XslfoFormatter(Formatter):
+	r"""
+	Format tokens as XSL-FO ``<fo:inline>`` tags.
+	"""
+
+	name = 'XSL-FO formatter'
+	aliases = ['xslfo', 'xsl-fo']
+	filenames = []
+
+	def __init__(self, **options):
+		Formatter.__init__(self, **options)
+		self.title = self._decodeifneeded(self.title)
+
+		# Holds fo attributes that correspond to each style type.
+		self.styles = {}
+		self.background_colour = self.style.background_color or '#ffffff'
+
+		# Iterate over the style and create a list of fo attributes that describe it.
+		for token, style in self.style:
+			atts = []
+			if style['color']:
+				atts.append('color="#%s"' % style['color'])
+			if style['bold']:
+				atts.append('font-weight="bold"')
+			if style['italic']:
+				atts.append('font-style="italic"')
+			if style['underline']:
+				atts.append('text-decoration="underline"')
+
+			# Save the attributes for this style
+			self.styles[token] = ' '.join(atts)
+
+	def _decodeifneeded(self, value):
+		if isinstance(value, bytes):
+			if self.encoding:
+				return value.decode(self.encoding)
+			return value.decode()
+		return value
+
+	def format_unencoded(self, tokensource, outfile):
+		"""
+		Read the token source and write it marked up with fo:inline styles.
+
+		We join together tokens with the same token type and then surround the
+		text with a fo:inline tag with appropriate attributes for the style
+		element.
+
+		The whole thing is wrapped in a fo:block tag.
+		"""
+
+		def write_value(t, val):
+			atts = self.styles[t]
+			outfile.write('<fo:inline %s>%s</fo:inline>' % (atts, escape_html(val)))
+
+		outfile.write(
+			'<fo:block background-color="%s" xmlns:fo="http://www.w3.org/1999/XSL/Format">'
+				% self.background_colour)
+
+		lastval = ''
+		lasttype = None
+		for ttype, value in tokensource:
+			while ttype not in self.styles:
+				ttype = ttype.parent
+
+			if ttype == lasttype:
+				lastval += value
+			else:
+				if lastval:
+					write_value(lasttype, lastval)
+				lastval = value
+				lasttype = ttype
+
+		if lastval:
+			write_value(lasttype, lastval)
+
+		outfile.write('</fo:block>')
+--

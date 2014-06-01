@@ -15,6 +15,11 @@
                 xmlns:fo="http://www.w3.org/1999/XSL/Format">
 <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
 
+<!-- customisation to give more space -->
+<xsl:param name="body.start.indent">0pt</xsl:param>
+<xsl:attribute-set name="monospace.properties">
+  <xsl:attribute name="font-size">9pt</xsl:attribute>
+</xsl:attribute-set>
 
 <!-- This is the only thing that needs to be added for 
      the pygments-xslfo-formatter -->
