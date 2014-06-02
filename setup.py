@@ -10,7 +10,7 @@ with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
 	long_description = f.read()
 
 setup(name='pygments-xslfo-formatter',
-	version='1.0',
+	version='1.1',
 	description='A pygments formatter that outputs <fo:inline> tags',
 	long_description=long_description,
 	keywords='syntax highlighting xsl-fo',
