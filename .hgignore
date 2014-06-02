@@ -6,3 +6,5 @@ syntax: glob
 *.sw?
 pygments_xslfo_formatter.egg-info/
 example/*.pdf
+build/
+dist/

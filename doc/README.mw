@@ -1,8 +1,12 @@
 
 = Pygments formatter for xsl-fo output =
 
-This is a formatter for [http://pygments.org pygments] that produces output as a fragment
-of XSL-FO code.
+This is a formatter for [http://pygments.org pygments] that produces
+output marked up with <fo:inline> tags with the appropriate
+colour and other presentational attributes set according to
+the pygments style in use.
+
+To be useful this must be embeded in a complete xsl-fo document.
 It was developed for use with [http://asciidoc.org asciidoc]
 to produce PDF's using [http://xmlgraphics.apache.org/fop fop] with
 minimal configuration or extra dependencies.
